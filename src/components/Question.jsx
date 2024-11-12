@@ -35,6 +35,7 @@ const FormBuilder = () => {
         questionText: '',
         type: 'short_answer',
         options: [],
+        isRequired: false,  // Add isRequired field here
       },
     ]);
   };
@@ -123,6 +124,31 @@ const FormBuilder = () => {
     );
   };
 
+  const handleQuestionRequiredChange = (id) => {
+    setQuestions(
+      questions.map((question) =>
+        question.id === id ? { ...question, isRequired: !question.isRequired } : question
+      )
+    );
+  };
+
+  const handleOptionRequiredChange = (questionId, optionId) => {
+    setQuestions(
+      questions.map((question) =>
+        question.id === questionId
+          ? {
+              ...question,
+              options: question.options.map((option) =>
+                option.id === optionId
+                  ? { ...option, isRequired: !option.isRequired }
+                  : option
+              ),
+            }
+          : question
+      )
+    );
+  };
+
   return (
     <div>
       <Button variant="contained" color="primary" onClick={handleAddQuestion}>
@@ -139,6 +165,15 @@ const FormBuilder = () => {
               handleQuestionTextChange(question.id, e.target.value)
             }
           />
+          
+          {/* Required Checkbox for Question */}
+          <div>
+            <Checkbox
+              checked={question.isRequired}
+              onChange={() => handleQuestionRequiredChange(question.id)}
+            />
+            <span>Required</span>
+          </div>
 
           <TextField
             select
@@ -168,9 +203,9 @@ const FormBuilder = () => {
                   }}
                 >
                   {question.type === 'checkbox' ? (
-                    <Checkbox disabled />
+                    <Checkbox disabled checked={option.isRequired} />
                   ) : (
-                    <Radio disabled />
+                    <Radio disabled checked={option.isRequired} />
                   )}
                   <TextField
                     placeholder="Option text"
@@ -187,6 +222,14 @@ const FormBuilder = () => {
                     }
                     style={{ marginLeft: '10px' }}
                   />
+                  
+                  {/* Option Required Checkbox */}
+                  <Checkbox
+                    checked={option.isRequired}
+                    onChange={() => handleOptionRequiredChange(question.id, option.id)}
+                  />
+                  <span>Required</span>
+                  
                   <IconButton
                     onClick={() => handleRemoveOption(question.id, option.id)}
                   >
