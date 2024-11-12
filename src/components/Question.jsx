@@ -18,7 +18,7 @@ const FormBuilder = () => {
   const [questions, setQuestions] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
-  const [newOption, setNewOption] = useState({ text: '', value: '' });
+  const [newOption, setNewOption] = useState({ text: '' });
 
   const questionTypes = [
     { value: 'short_answer', label: 'Short Answer' },
@@ -35,7 +35,8 @@ const FormBuilder = () => {
         questionText: '',
         type: 'short_answer',
         options: [],
-        isRequired: false,  // Add isRequired field here
+        isRequired: false,
+        answer: '', // For storing user answers
       },
     ]);
   };
@@ -56,11 +57,11 @@ const FormBuilder = () => {
 
   const handleDialogClose = () => {
     setDialogOpen(false);
-    setNewOption({ text: '', value: '' });
+    setNewOption({ text: '' });
   };
 
   const handleAddOptionConfirm = () => {
-    if (newOption.text && newOption.value) {
+    if (newOption.text) {
       setQuestions(
         questions.map((question) =>
           question.id === currentQuestionId
@@ -68,7 +69,7 @@ const FormBuilder = () => {
                 ...question,
                 options: [
                   ...question.options,
-                  { id: Date.now(), ...newOption },
+                  { id: Date.now(), text: newOption.text },
                 ],
               }
             : question
@@ -149,6 +150,14 @@ const FormBuilder = () => {
     );
   };
 
+  const handleAnswerChange = (id, answer) => {
+    setQuestions(
+      questions.map((question) =>
+        question.id === id ? { ...question, answer } : question
+      )
+    );
+  };
+
   return (
     <div>
       <Button variant="contained" color="primary" onClick={handleAddQuestion}>
@@ -191,6 +200,19 @@ const FormBuilder = () => {
             ))}
           </TextField>
 
+          {/* Render Answer Field based on Question Type */}
+          {(question.type === 'short_answer' || question.type === 'paragraph') && (
+            <TextField
+              label="Your Answer"
+              fullWidth
+              multiline={question.type === 'paragraph'}
+              rows={question.type === 'paragraph' ? 4 : 1}
+              value={question.answer}
+              onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+              style={{ marginTop: '10px' }}
+            />
+          )}
+
           {(question.type === 'checkbox' || question.type === 'radio') && (
             <div>
               {question.options.map((option) => (
@@ -203,9 +225,15 @@ const FormBuilder = () => {
                   }}
                 >
                   {question.type === 'checkbox' ? (
-                    <Checkbox disabled checked={option.isRequired} />
+                    <Checkbox
+                      checked={option.isRequired}
+                      onChange={() => handleOptionRequiredChange(question.id, option.id)}
+                    />
                   ) : (
-                    <Radio disabled checked={option.isRequired} />
+                    <Radio
+                      checked={option.isRequired}
+                      onChange={() => handleOptionRequiredChange(question.id, option.id)}
+                    />
                   )}
                   <TextField
                     placeholder="Option text"
@@ -213,14 +241,6 @@ const FormBuilder = () => {
                     onChange={(e) =>
                       handleOptionTextChange(question.id, option.id, e.target.value)
                     }
-                  />
-                  <TextField
-                    placeholder="Option value"
-                    value={option.value}
-                    onChange={(e) =>
-                      handleOptionTextChange(question.id, option.id, e.target.value)
-                    }
-                    style={{ marginLeft: '10px' }}
                   />
                   
                   {/* Option Required Checkbox */}
@@ -265,14 +285,8 @@ const FormBuilder = () => {
             label="Option Text"
             fullWidth
             value={newOption.text}
-            onChange={(e) => setNewOption({ ...newOption, text: e.target.value })}
+            onChange={(e) => setNewOption({ text: e.target.value })}
             style={{ marginBottom: '10px' }}
-          />
-          <TextField
-            label="Option Value"
-            fullWidth
-            value={newOption.value}
-            onChange={(e) => setNewOption({ ...newOption, value: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
